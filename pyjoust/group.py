@@ -21,6 +21,7 @@ def get_group_num(group_size, num_participants, additional_group=True):
         res += 1
     return res
 
+
 def group_sizes(group_size, num_participants, additional_group=True):
     if group_size <= 0:
         return
@@ -39,7 +40,11 @@ def group_sizes(group_size, num_participants, additional_group=True):
         yield rest
 
 
-def groups_by_size(group_size, participants, shuffle=False, additional_group=True):
+def groups_by_size(
+        group_size,
+        participants,
+        shuffle=False,
+        additional_group=True):
     if group_size <= 0:
         return []
     num_participants = len(participants)
@@ -48,17 +53,25 @@ def groups_by_size(group_size, participants, shuffle=False, additional_group=Tru
         participants = random.sample(participants, num_participants)
     result = []
     start = 0
-    for group_size in group_sizes(group_size, num_participants, additional_group):
-        next_group = participants[start:start+group_size]
+    for group_size in group_sizes(
+            group_size,
+            num_participants,
+            additional_group):
+        next_group = participants[start:start + group_size]
         result.append(next_group)
         start += group_size
     return result
+
 
 def groups_by_number(num_groups, participants, shuffle=False):
     if num_groups <= 0:
         return []
     group_size = len(participants) // num_groups
-    return groups_by_size(group_size, participants, shuffle=shuffle, additional_group=False)
+    return groups_by_size(
+        group_size,
+        participants,
+        shuffle=shuffle,
+        additional_group=False)
 
 
 if __name__ == '__main__':
