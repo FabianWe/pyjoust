@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 import functools
 
 
@@ -76,3 +77,71 @@ class TwoPoints(object):
             return True
         else:
             return False
+
+
+class MatchComparator(abc.ABC):
+    """An abstract base class for everything that can be used two compare a match between two teams.
+
+    GoalScore implements this interface, it uses "goals" (like in soccer) and computes the winner. Other implementations
+    can be provided for example for tennis.
+    """
+
+    @abc.abstractmethod
+    def winner(self):
+        """Method used to compute the winner.
+
+        Subclasses must implement this abstract method.
+
+        Returns:
+            One of the strings 'draw' (both teams are equally successful), 'one' (team one wins) or 'two' (team two
+            wins).
+        """
+        pass
+
+
+class GoalScore(MatchComparator):
+    """An implementation of MatchComparator used for games in which teams have a score (for example goals in soccer).
+
+    Attributes:
+        goals_one: An integer, the score (goals) for team one.
+        goals_two: An integer, the score (goals) for team two.
+    """
+    def __init__(self, goals_one, goals_two):
+        self.goals_one = goals_one
+        self.goals_two = goals_two
+
+    def winner(self):
+        """Implements the abstract winner method and returns the winner of the game.
+
+        Returns:
+            'draw' if both teams have the same number of goals, 'one' if team one has more goals and 'two' otherwise.
+        """
+        if self.goals_one == self.goals_two:
+            return 'draw'
+        elif self.goals_one > self.goals_two:
+            return 'one'
+        else:
+            return 'two'
+
+def parse_score(s):
+    """Parse a score string of the form "a:b" where a and b are ints.
+
+    Args:
+        s: The string representation.
+
+    Returns:
+        A GoalScore object with a and b.
+
+    Raises:
+        JoustException: If the syntax is invalid.
+    """
+    split = s.split(':')
+    if len(split) != 2:
+        raise JoustException('Must be of form "a:b", got ' + str(s))
+    first, second = split[0], split[1]
+    try:
+        first, second = int(first), int(second)
+    except ValueError:
+        raise JoustException(
+            'Must be of form "a:b" with valid integers, got ' + str(s))
+    return GoalScore(first, second)

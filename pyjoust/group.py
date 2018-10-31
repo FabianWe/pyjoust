@@ -16,7 +16,7 @@ import itertools
 from operator import itemgetter
 import random
 
-from .utils import TwoPoints, JoustException
+from .utils import TwoPoints, JoustException, parse_score
 
 
 def get_group_num(group_size, num_participants, additional_group=True):
@@ -283,29 +283,6 @@ class Table(object):
         pass
 
 
-def parse_score(s):
-    """Parse a score string of the form "a:b" where a and b are ints.
-
-    Args:
-        s: The string representation.
-
-    Returns:
-        A tuple of ints, the parsed components.
-
-    Raises:
-        JoustException: If the syntax is invalid.
-    """
-    split = s.split(':')
-    if len(split) != 2:
-        raise JoustException('Must be of form "a:b", got ' + str(s))
-    first, second = split[0], split[1]
-    try:
-        first, second = int(first), int(second)
-    except ValueError:
-        raise JoustException(
-            'Must be of form "a:b" with valid integers, got ' + str(s))
-    return first, second
-
 
 class MatchTable(Table):
     """A table that also stores a dictionary of matches.
@@ -314,7 +291,8 @@ class MatchTable(Table):
     "a:b" and adds the entry to the matches dictionary and then recomputes the whole ranking dictionary via the new
     compute_ranking method. This way whenever the matches dict is changed (new result, update of a result) the whole
     points are recomputed. This should be fine however. set_match does the same but without parsing the score from a
-    string.
+    string. This is useful if matches should store not only scores (see GoalScore) but other types. The stored values
+    must implement MatchComparator. The win method is used to identify the winner.
 
     Args:
         group: A list of unique team identifiers.
@@ -346,45 +324,44 @@ class MatchTable(Table):
 
         This method actually creates a new dict and overwrites the old one.
         """
-        # TODO make this more abstract? don't store pairs here but something like a score that tells us which one
-        # wins?
         new_points = dict()
         for entry in self.points:
             new_points[entry] = self.empty_value()
-        # set self.points to new dict so we can use increse method
+        # set self.points to new dict so we can use increase method
         self.points = new_points
         for (team_one, team_two), entry in self.matches.items():
             if entry is None:
                 continue
-            first, second = entry
-            if first == second:
+            cmp = entry.winner()
+            if cmp == 'draw':
                 # both get draw points
                 self.increase_points(team_one, self.draw)
                 self.increase_points(team_two, self.draw)
-            elif first > second:
+            elif cmp == 'one':
                 # team one wins
                 self.increase_points(team_one, self.win)
                 self.increase_points(team_two, self.lose)
             else:
                 # second team wins
+                assert cmp == 'two'
                 self.increase_points(team_one, self.lose)
                 self.increase_points(team_two, self.win)
 
-    def set_match(self, team_one, team_two, goals_one, goals_two):
-        """The same as set_match_from_string but with explicit values (without parsing the score first).
+    def set_match(self, team_one, team_two, entry):
+        """The same as set_match_from_string but with explicit value (without parsing the score first). This way not
+        only GoalScore objects can be used but everything implementing MatchComparator.
 
         Args:
             team_one: Identifier of the first team s.t. (team_one, team_two) is a valid entry in the matches dict.
             team_two: Identifier of the second team s.t. (team_one, team_two) is a valid entry in the matches dict.
-            goals_one: Number of "goals" for team one.
-            goals_two: Number of "goals" for team two.
+            entry. The entry to store for the match, must implement MatchComparator.
 
         Raises:
             JoustException: If teams are invalid.
         """
         self.check_exists(team_one, team_two)
         self._check_match_exists((team_one, team_two))
-        self.matches[(team_one, team_two)] = (goals_one, goals_two)
+        self.matches[(team_one, team_two)] = entry
         self.compute_ranking()
 
     def set_match_from_string(self, team_one, team_two, s):
@@ -401,8 +378,8 @@ class MatchTable(Table):
             JoustException: If teams are invalid or if there is a syntax error in s.
         """
         # first check that teams are valid (before changing anything)
-        first, second = parse_score(s)
-        self.set_match(team_one, team_two, first, second)
+        entry = parse_score(s)
+        self.set_match(team_one, team_two, entry)
 
 
 class ThreePointsTable(MatchTable):
