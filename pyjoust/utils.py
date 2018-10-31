@@ -14,16 +14,43 @@
 
 import functools
 
+
+class JoustException(Exception):
+    pass
+
 @functools.total_ordering
 class TwoPoints(object):
+    """Class representing a two points for a win entry. It consists of positive and negative points.
+
+    Attributes:
+        plus (int): The number of positive (plus) points, always a positive integer.
+        minus (int): The number of negative (minus) points, always a positive integer.
+    """
+
     def __init__(self, plus, minus):
         self.plus = plus
         self.minus = minus
 
     def __add__(self, other):
+        """Adds another point and returns the result.
+
+        Args:
+            other: The point to add to this point.
+
+        Returns:
+            The new point, that is the componentwise sum of self and other.
+        """
         return TwoPoints(self.plus + other.plus, self.minus + other.minus)
 
     def __iadd__(self, other):
+        """Adds another point and returns the result.
+
+        Args:
+            other: The point to add to this point.
+
+        Returns:
+            The new point, that is the componentwise sum of self and other.
+        """
         return self + other
 
     def __str__(self):

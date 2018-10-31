@@ -16,15 +16,7 @@ import itertools
 from operator import itemgetter
 import random
 
-from .utils import TwoPoints
-
-
-class UnregisteredGroupException(Exception):
-    pass
-
-
-class MatchException(Exception):
-    pass
+from .utils import TwoPoints, JoustException
 
 
 def get_group_num(group_size, num_participants, additional_group=True):
@@ -107,18 +99,18 @@ class Table(object):
 
     def set_points(self, team, points):
         if team not in self.points:
-            raise MatchException('Invalid team name "%s"' % str(team))
+            raise JoustException('Invalid team name "%s"' % str(team))
         self.points[team] = points
 
     def increase_points(self, team, by):
         if team not in self.points:
-            raise MatchException('Invalid team name "%s"' % str(team))
+            raise JoustException('Invalid team name "%s"' % str(team))
         self.points[team] += by
 
     def check_exists(self, *args):
         for team in args:
             if team not in self.points:
-                raise MatchException('Invalid team name "%s"' % str(team))
+                raise JoustException('Invalid team name "%s"' % str(team))
 
     def sort_ranking(self):
         ranking = []
@@ -142,12 +134,12 @@ class Table(object):
 def parse_score(s):
     split = s.split(':')
     if len(split) != 2:
-        raise MatchException('Must be of form "a:b", got ' + str(s))
+        raise JoustException('Must be of form "a:b", got ' + str(s))
     first, second = split[0], split[1]
     try:
         first, second = int(first), int(second)
     except ValueError:
-        raise MatchException(
+        raise JoustException(
             'Must be of form "a:b" with valid integers, got ' + str(s))
     return first, second
 
@@ -162,7 +154,7 @@ class ThreePointsTable(Table):
     def check_match_exists(self, *args):
         for t in args:
             if t not in self.matches:
-                raise MatchException(
+                raise JoustException(
                     'Invalid match: "%s vs %s"' %
                     (str(
                         t[0]), str(
@@ -208,7 +200,7 @@ class TwoPointsTable(Table):
     def check_match_exists(self, *args):
         for t in args:
             if t not in self.matches:
-                raise MatchException(
+                raise JoustException(
                     'Invalid match: "%s vs %s"' %
                     (str(
                         t[0]), str(
