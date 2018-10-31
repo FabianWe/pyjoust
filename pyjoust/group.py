@@ -16,6 +16,8 @@ import itertools
 from operator import itemgetter
 import random
 
+from .utils import TwoPoints
+
 
 class UnregisteredGroupException(Exception):
     pass
@@ -122,7 +124,7 @@ class Table(object):
         ranking = []
         for team, points in self.points.items():
             ranking.append((team, points))
-        ranking.sort(key=itemgetter(1, 0))
+        ranking.sort(key=itemgetter(1, 0), reverse=True)
         return ranking
 
     def compute_ranks(self):
@@ -136,6 +138,18 @@ class Table(object):
         # TODO throw exception here or is it fine to ignore it?
         pass
 
+
+def parse_score(s):
+    split = s.split(':')
+    if len(split) != 2:
+        raise MatchException('Must be of form "a:b", got ' + str(s))
+    first, second = split[0], split[1]
+    try:
+        first, second = int(first), int(second)
+    except ValueError:
+        raise MatchException(
+            'Must be of form "a:b" with valid integers, got ' + str(s))
+    return first, second
 
 class ThreePointsTable(Table):
     def __init__(self, group, matches_tuples, win=3, draw=1, lose=0):
@@ -157,16 +171,8 @@ class ThreePointsTable(Table):
     def set_match_from_string(self, team_one, team_two, s):
         # first check that teams are valid (before changing anything)
         self.check_exists(team_one, team_two)
-        self.check_match_exists(team_one, team_two)
-        split = s.split(':')
-        if len(split) != 2:
-            raise MatchException('Must be of form "a:b", got ' + str(s))
-        first, second = split[0], split[1]
-        try:
-            first, second = int(first), int(second)
-        except ValueError:
-            raise MatchException(
-                'Must be of form "a:b" with valid integers, got ' + str(s))
+        self.check_match_exists([team_one, team_two])
+        first, second = parse_score(s)
         if first == second:
             # both get draw points
             self.increase_points(team_one, self.draw)
@@ -179,12 +185,50 @@ class ThreePointsTable(Table):
             # second team wins
             self.increase_points(team_one, self.lose)
             self.increase_points(team_two, self.win)
+        self.matches[(team_one, team_two)] = (first, second)
 
 
-if __name__ == '__main__':
-    p = ['Part. %d' % i for i in range(15)]
-    matches = round_robin(p)
-    t = ThreePointsTable(p, matches)
-    print(t.points)
-    print(t.sort_ranking())
-    print(t.compute_ranks())
+class TwoPointsTable(Table):
+    def __init__(self, group, matches_tuples, win=None, draw=None, lose=None):
+        if win is None:
+            win = TwoPoints(2, 0)
+        if draw is None:
+            draw = TwoPoints(1, 1)
+        if lose is None:
+            lose = TwoPoints(0, 2)
+        super().__init__(group)
+        self.win, self.draw, self.lose = win, draw, lose
+        self.matches = dict()
+        for first, second in matches_tuples:
+            self.matches[(first, second)] = None
+
+    def empty_value(self):
+        return TwoPoints(0, 0)
+
+    def check_match_exists(self, *args):
+        for t in args:
+            if t not in self.matches:
+                raise MatchException(
+                    'Invalid match: "%s vs %s"' %
+                    (str(
+                        t[0]), str(
+                        t[1])))
+
+    def set_match_from_string(self, team_one, team_two, s):
+        # first check that teams are valid (before changing anything)
+        self.check_exists(team_one, team_two)
+        self.check_match_exists([team_one, team_two])
+        first, second = parse_score(s)
+        if first == second:
+            # both get draw points
+            self.increase_points(team_one, self.draw)
+            self.increase_points(team_two, self.draw)
+        elif first > second:
+            # team one wins
+            self.increase_points(team_one, self.win)
+            self.increase_points(team_two, self.lose)
+        else:
+            # second team wins
+            self.increase_points(team_one, self.lose)
+            self.increase_points(team_two, self.win)
+        self.matches[(team_one, team_two)] = (first, second)
