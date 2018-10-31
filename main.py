@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from pyjoust.group import round_robin, TwoPointsTable, ThreePointsTable
+from pyjoust.ko import KOTree
 
 if __name__ == '__main__':
     p = list(range(15))
     matches = round_robin(p)
     t = TwoPointsTable(p, matches)
     t.set_match_from_string(0, 1, "42:24")
-    print(t.compute_ranks())
+    tree = KOTree(list(range(8)))
+    print(tree.nodes)
