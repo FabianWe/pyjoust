@@ -55,7 +55,8 @@ class KOTree(object):
             nodes[i] = KOTreeNode(team)
         self.nodes = nodes
 
-    def to_root(self, node_id):
+    @staticmethod
+    def to_root(node_id):
         result = None
         n = node_id
         while True:

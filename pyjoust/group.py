@@ -346,6 +346,8 @@ class MatchTable(Table):
 
         This method actually creates a new dict and overwrites the old one.
         """
+        # TODO make this more abstract? don't store pairs here but something like a score that tells us which one
+        # wins?
         new_points = dict()
         for entry in self.points:
             new_points[entry] = self.empty_value()
@@ -408,9 +410,6 @@ class ThreePointsTable(MatchTable):
 
     For a win 3 points are awarded to the winner and 0 to the loser. On a draw both teams receive one point.
     These values can be overwritten.
-
-    Args:
-
     """
     def __init__(self, group, matches_tuples, win=3, draw=1, lose=0):
         super().__init__(group, matches_tuples, win, draw, lose)
@@ -434,4 +433,3 @@ class TwoPointsTable(MatchTable):
 
     def empty_value(self):
         return TwoPoints(0, 0)
-
