@@ -16,15 +16,22 @@ import functools
 
 
 class JoustException(Exception):
+    """The base class for all exceptions thrown by pyjoust.
+    """
     pass
+
 
 @functools.total_ordering
 class TwoPoints(object):
     """Class representing a two points for a win entry. It consists of positive and negative points.
 
+    Points are comparable with all rich comparison methods (such as >). We say that p1 > p2 if
+    p1.plus > p2.plus or if p1.plus == p2.plus and p1.minus < p2.minus. In short: The one with the most plus points
+    always wins, if they have the same number of plus points the one with the lowest number of minus points wins.
+
     Attributes:
-        plus (int): The number of positive (plus) points, always a positive integer.
-        minus (int): The number of negative (minus) points, always a positive integer.
+        plus: The number of positive (plus) points, always a positive integer.
+        minus: The number of negative (minus) points, always a positive integer.
     """
 
     def __init__(self, plus, minus):
@@ -56,9 +63,11 @@ class TwoPoints(object):
     def __str__(self):
         return '%d:%d' % (self.plus, self.minus)
 
+    def __repr__(self):
+        return str(self)
+
     def __eq__(self, other):
         return self.plus == other.plus and self.minus == other.minus
-
 
     def __gt__(self, other):
         if self.plus == other.plus:

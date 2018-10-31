@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyjoust.group import round_robin, ThreePointsTable
+from pyjoust.group import round_robin, TwoPointsTable, ThreePointsTable
 
 if __name__ == '__main__':
-    p = ['Part. %d' % i for i in range(15)]
+    p = list(range(15))
     matches = round_robin(p)
-    t = ThreePointsTable(p, matches)
-    print(t.points)
-    print(t.sort_ranking())
+    t = TwoPointsTable(p, matches)
+    t.set_match_from_string(0, 1, "42:24")
     print(t.compute_ranks())
