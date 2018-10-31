@@ -24,6 +24,7 @@ class UnregisteredGroupException(Exception):
 class MatchException(Exception):
     pass
 
+
 def get_group_num(group_size, num_participants, additional_group=True):
     res = num_participants // group_size
     if additional_group and num_participants % group_size != 0:
@@ -91,20 +92,6 @@ def toss_coin():
     return random.randint(0, 1) == 0
 
 
-# match handler interface:
-# must be able to:
-# hold the actual matches
-# compare results of a match (compute a reward for teams)
-# sort the teams (given global score and internal information)
-# how do we connect a GroupTournament to a match handler? input types might
-# be different!
-# provide a from_string method
-
-# methods:
-# from_string: string --> required representation for match result
-# score: rep --> (int, int)
-# compare: complicated
-
 class Table(object):
     def __init__(self, group):
         super().__init__()
@@ -115,7 +102,6 @@ class Table(object):
     def empty_value(self):
         # overwrite in sub classes
         return 0
-
 
     def set_points(self, team, points):
         if team not in self.points:
@@ -132,14 +118,12 @@ class Table(object):
             if team not in self.points:
                 raise MatchException('Invalid team name "%s"' % str(team))
 
-
     def sort_ranking(self):
         ranking = []
         for team, points in self.points.items():
             ranking.append((team, points))
         ranking.sort(key=itemgetter(1, 0))
         return ranking
-
 
     def compute_ranks(self):
         ranking = self.sort_ranking()
@@ -164,7 +148,11 @@ class ThreePointsTable(Table):
     def check_match_exists(self, *args):
         for t in args:
             if t not in self.matches:
-                raise MatchException('Invalid match: "%s vs %s"' % (str(t[0]), str(t[1])))
+                raise MatchException(
+                    'Invalid match: "%s vs %s"' %
+                    (str(
+                        t[0]), str(
+                        t[1])))
 
     def set_match_from_string(self, team_one, team_two, s):
         # first check that teams are valid (before changing anything)
@@ -177,7 +165,8 @@ class ThreePointsTable(Table):
         try:
             first, second = int(first), int(second)
         except ValueError:
-            raise MatchException('Must be of form "a:b" with valid integers, got ' + str(s))
+            raise MatchException(
+                'Must be of form "a:b" with valid integers, got ' + str(s))
         if first == second:
             # both get draw points
             self.increase_points(team_one, self.draw)
