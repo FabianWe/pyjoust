@@ -144,6 +144,9 @@ def groups_by_number(num_groups, participants, shuffle=False):
 def round_robin(group):
     """Returns an iterator over possible matches (each player plays once against each other player).
 
+    Note that if you want to schedule the matches (having many matches concurrently on different courts)
+    round_robin_circle and berger_table should produce better results.
+
     Args:
         group: A list of unique team identifiers.
 
@@ -151,6 +154,152 @@ def round_robin(group):
         Tuples of team identifiers, describing all matches if each team plays once against each other team.
     """
     return itertools.combinations(group, 2)
+
+def round_robin_circle(teams):
+    """Returns an iterator over possible rounds (each player plays once against each other player).
+
+    This returns the same matches as round_robin but the order in which the elements are returned is better for having
+    many matches concurrently (on different courts for example).
+    Note that "the same" is a bit ambiguous. It only means that the same teams play against each other, though the
+    order in the tuples can be different. For example if you have two teams "Team A" and "Team B" bot functions yield
+    a match between the two teams, but one might yield ("Team A", "Team B") and the other ("Team B", "Team A").
+    This can be important when storing matches in dictionaries.
+
+    Note that in contrast to round_robin it does not yield the matches directly, but yields lists of matches, each
+    list describing a round (can be played concurrently).
+
+    This implementation is inspired by https://en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm
+
+    Args:
+        teams: A list of unique team identifiers.
+
+    Yields:
+        Lists of tuples of team identifiers, describing all matches if each team plays once against each other team.
+
+    Examples:
+        >>> list(round_robin_circle([1, 2, 3, 4]))
+        [[(1, 4), (2, 3)], [(1, 3), (4, 2)], [(1, 2), (3, 4)]]
+
+        >>> list(itertools.chain.from_iterable(round_robin_circle([1, 2, 3, 4])))
+        [(1, 4), (2, 3), (1, 3), (4, 2), (1, 2), (3, 4)]
+    """
+    n = len(teams)
+    if n < 2:
+        return
+    if n == 2:
+        yield [(teams[0], teams[1])]
+        return
+    init_top = teams[:n // 2]
+    init_bottom = list(reversed(teams[n // 2:]))
+    if n % 2 != 0:
+        init_top.append(None)
+        n += 1
+    init = (init_top, init_bottom)
+    next = (init_top, init_bottom)
+    for _ in range(n-1):
+        # yield all pairings, ignoring byes
+        top, bottom = next
+        yield list(filter(lambda t: t[0] is not None and t[1] is not None, zip(top, bottom)))
+        next = _rotate_round_robin(top, bottom)
+
+
+def _rotate_round_robin(top, bottom):
+    """Performs the round robin rotation (circle) as proposed in
+    https://en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm
+
+    Args:
+        top: Teams in the top row, must have the same length as bottom.
+        bottom: Teams in the bottom row, must have the same length as top.
+
+    Returns:
+        The next tuple (top, bottom) where top and bottom are the newly rotated lists, arguments are left unchanged.
+    """
+    top_last = top[-1]
+    bottom_first = bottom[0]
+    top_res = [top[0], bottom_first] + top[1:-1]
+    bottom_res = bottom[1:] + [top_last]
+    return top_res, bottom_res
+
+
+def berger_table(teams):
+    """Returns an iterator over possible rounds (each player plays once against each other player).
+
+    This returns the same matches as round_robin but the order in which the elements are returned is better for having
+    many matches concurrently (on different courts for example).
+    Note that "the same" is a bit ambiguous. It only means that the same teams play against each other, though the
+    order in the tuples can be different. For example if you have two teams "Team A" and "Team B" bot functions yield
+    a match between the two teams, but one might yield ("Team A", "Team B") and the other ("Team B", "Team A").
+    This can be important when storing matches in dictionaries.
+
+    Note that in contrast to round_robin it does not yield the matches directly, but yields lists of matches, each
+    list describing a round (can be played concurrently).
+
+    This implementation is inspired by https://en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm
+
+    It yields a different order than round_robin_circle.
+
+    Args:
+        teams: A list of ints (team identifiers).
+
+    Yields:
+        Lists of tuples of team identifiers, describing all matches if each team plays once against each other team.
+
+    Examples:
+        >>> list(berger_table([1, 2, 3, 4]))
+        [[(1, 4), (2, 3)], [(4, 3), (1, 2)], [(2, 4), (3, 1)]]
+
+        >>>
+    """
+    n = len(teams)
+    if n < 2:
+        return
+    if n == 2:
+        yield [(teams[0], teams[1])]
+        return
+    if n % 2 != 0:
+        teams.append(None)
+        n += 1
+    init = []
+    for e1, e2 in zip(teams[:n//2], reversed(teams[n//2:])):
+        init.append(e1)
+        init.append(e2)
+    fixed = init[1]
+    next = init[:]
+    for _ in range(n-1):
+        next_round = []
+        for i in range(0, len(next), 2):
+            team_one, team_two = next[i], next[i+1]
+            if team_one is None or team_two is None:
+                continue
+            next_round.append((team_one, team_two))
+        yield next_round
+        next = _rotate_berger(next, fixed)
+
+
+def _rotate_berger(l, fixed):
+    result = []
+    n = len(l)
+    add = n // 2
+    sub = add - 1
+
+    def new_val(old):
+        assert old is not None
+        r = old + add
+        if r > (n - 1):
+            return old - sub
+        else:
+            return r
+    first, second = l[0], l[1]
+    if first == fixed:
+        result.append(new_val(second))
+        result.append(fixed)
+    else:
+        assert second == fixed
+        result.append(fixed)
+        result.append(new_val(first))
+    for e in l[2:]:
+        result.append(new_val(e))
+    return result
 
 
 def toss_coin():
