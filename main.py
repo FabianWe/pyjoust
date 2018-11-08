@@ -26,3 +26,7 @@ if __name__ == '__main__':
     rows = tree.get_rows()
     print(list(tree.get_matches(rows[0])))
     print(GoalScore.parse("42:24"))
+
+    f = getattr(KubbResult, 'compute_ranks', None)
+    print(f)
+    print(callable(f))

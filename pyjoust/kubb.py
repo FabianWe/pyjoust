@@ -14,6 +14,8 @@
 
 from .utils import MatchComparator, JoustException
 
+import itertools
+from operator import itemgetter
 import re
 
 
@@ -52,6 +54,38 @@ class KubbResult(MatchComparator):
             raise JoustException('Invalid syntax for Kubb result in "%s": Invalid int' % s)
         return KubbResult(first, second, timeout)
 
-
     def winner(self):
-        pass
+        if self.first == self.second:
+            return 'draw'
+        if self.first > self.second:
+            return 'two'
+        else:
+            return 'one'
+
+    @staticmethod
+    def sort_ranking(match_table):
+        # TODO test
+        left_map = dict()
+        for team in match_table.points():
+            left_map[team] = 0
+        # iterate over each match
+        for (team_one, team_two), entry in match_table.matches:
+            assert isinstance(entry, KubbResult)
+            if entry.first is not None:
+                left_map[team_one] += entry.first
+            if entry.second is not None:
+                left_map[team_two] += entry.second
+        ranking = []
+        for team, points in match_table.points.items():
+            ranking.append((team, points, -left_map[team]))
+        ranking.sort(key=itemgetter(1, 2, 0))
+        return ranking
+
+    @staticmethod
+    def compute_ranks(match_table):
+        # TODO test
+        ranking = KubbResult.sort_ranking(match_table)
+        ranks = []
+        for (points, left), r in itertools.groupby(ranking, key=itemgetter(1, 2)):
+            ranks.append((points, left), [ e[0] for e in r ])
+        return ranks

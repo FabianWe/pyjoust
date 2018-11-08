@@ -278,11 +278,6 @@ class Table(object):
             ranks.append((value, [ e[0] for e in r ]))
         return ranks
 
-    def set_match_from_string(self, team_one, team_two, s):
-        # TODO throw exception here or is it fine to ignore it?
-        pass
-
-
 
 class MatchTable(Table):
     """A table that also stores a dictionary of matches.
@@ -307,8 +302,12 @@ class MatchTable(Table):
             that Team A won with 42 to 24 (goals) againsgt team B. Team A will be awarded self.win points, Team B
             self.lose points (usually a decrease or neutral element).
     """
-    def __init__(self, group, matches_tuples, win, draw, lose):
+    # TODO document cmp class, update the rest of the doc
+    def __init__(self, group, matches_tuples, win, draw, lose, cmp_class=None):
         super().__init__(group)
+        if cmp_class is None:
+            cmp_class = GoalScore
+        self.cmp_class = cmp_class
         self.win, self.draw, self.lose = win, draw, lose
         self.matches = dict()
         for first, second in matches_tuples:
@@ -378,8 +377,24 @@ class MatchTable(Table):
             JoustException: If teams are invalid or if there is a syntax error in s.
         """
         # first check that teams are valid (before changing anything)
-        entry = GoalScore.parse(s)
+        entry = self.cmp_class.parse(s)
         self.set_match(team_one, team_two, entry)
+
+    def sort_ranking(self):
+        # TODO doc overwrite and test
+        f = getattr(self.cmp_class, 'sort_ranking', None)
+        if callable(f):
+            return f(self)
+        else:
+            return super().sort_ranking()
+
+    def compute_ranks(self):
+        # TODO doc overwrite and test
+        f = getattr(self.cmp_class, 'compute_ranks', None)
+        if callable(f):
+            return f(self)
+        else:
+            return super().compute_ranks()
 
 
 class ThreePointsTable(MatchTable):
@@ -388,8 +403,8 @@ class ThreePointsTable(MatchTable):
     For a win 3 points are awarded to the winner and 0 to the loser. On a draw both teams receive one point.
     These values can be overwritten.
     """
-    def __init__(self, group, matches_tuples, win=3, draw=1, lose=0):
-        super().__init__(group, matches_tuples, win, draw, lose)
+    def __init__(self, group, matches_tuples, win=3, draw=1, lose=0, cmp_class=None):
+        super().__init__(group, matches_tuples, win, draw, lose, cmp_class=cmp_class)
 
 
 class TwoPointsTable(MatchTable):
@@ -399,14 +414,14 @@ class TwoPointsTable(MatchTable):
     The winner is awarded 2 plus points and 0 minus points, the loswer 0 plus points and 2 minus points. On a draw
     both teams receive one plus and one minus point. These values can be overwritten.
     """
-    def __init__(self, group, matches_tuples, win=None, draw=None, lose=None):
+    def __init__(self, group, matches_tuples, win=None, draw=None, lose=None, cmp_class=None):
         if win is None:
             win = TwoPoints(2, 0)
         if draw is None:
             draw = TwoPoints(1, 1)
         if lose is None:
             lose = TwoPoints(0, 2)
-        super().__init__(group, matches_tuples, win, draw, lose)
+        super().__init__(group, matches_tuples, win, draw, lose, cmp_class=cmp_class)
 
     def empty_value(self):
         return TwoPoints(0, 0)
