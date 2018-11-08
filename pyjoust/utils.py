@@ -14,6 +14,7 @@
 
 import abc
 import functools
+import re
 
 
 class JoustException(Exception):
@@ -98,8 +99,16 @@ class MatchComparator(abc.ABC):
         """
         pass
 
+    @staticmethod
+    @abc.abstractmethod
+    def parse(str):
+        pass
+
 
 class GoalScore(MatchComparator):
+
+    rx = re.compile(r"^\s*(?P<first>\d+):(?P<second>\d+)\s*$")
+
     """An implementation of MatchComparator used for games in which teams have a score (for example goals in soccer).
 
     Attributes:
@@ -109,6 +118,9 @@ class GoalScore(MatchComparator):
     def __init__(self, goals_one, goals_two):
         self.goals_one = goals_one
         self.goals_two = goals_two
+
+    def __str__(self):
+        return '%d:%d' % (self.goals_one, self.goals_two)
 
     def winner(self):
         """Implements the abstract winner method and returns the winner of the game.
@@ -123,25 +135,27 @@ class GoalScore(MatchComparator):
         else:
             return 'two'
 
-def parse_score(s):
-    """Parse a score string of the form "a:b" where a and b are ints.
+    @staticmethod
+    def parse(s):
+        """Parse a score string of the form "a:b" where a and b are ints.
 
-    Args:
-        s: The string representation.
+        Args:
+            s: The string representation.
 
-    Returns:
-        A GoalScore object with a and b.
+        Returns:
+            A GoalScore object with a and b.
 
-    Raises:
-        JoustException: If the syntax is invalid.
-    """
-    split = s.split(':')
-    if len(split) != 2:
-        raise JoustException('Must be of form "a:b", got ' + str(s))
-    first, second = split[0], split[1]
-    try:
-        first, second = int(first), int(second)
-    except ValueError:
-        raise JoustException(
-            'Must be of form "a:b" with valid integers, got ' + str(s))
-    return GoalScore(first, second)
+        Raises:
+            JoustException: If the syntax is invalid.
+        """
+        match = GoalScore.rx.match(s)
+        if not match:
+            raise JoustException('Must be of form "a:b", got ' + str(s))
+        first, second = match.group('first'), match.group('second')
+        try:
+            first, second = int(first), int(second)
+        except ValueError:
+            raise JoustException(
+                'Must be of form "a:b" with valid integers, got ' + str(s))
+        return GoalScore(first, second)
+

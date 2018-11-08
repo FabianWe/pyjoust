@@ -16,7 +16,7 @@ import itertools
 from operator import itemgetter
 import random
 
-from .utils import TwoPoints, JoustException, parse_score
+from .utils import TwoPoints, JoustException, GoalScore
 
 
 def get_group_num(group_size, num_participants, additional_group=True):
@@ -378,7 +378,7 @@ class MatchTable(Table):
             JoustException: If teams are invalid or if there is a syntax error in s.
         """
         # first check that teams are valid (before changing anything)
-        entry = parse_score(s)
+        entry = GoalScore.parse(s)
         self.set_match(team_one, team_two, entry)
 
 

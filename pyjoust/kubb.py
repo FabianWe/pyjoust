@@ -1,0 +1,57 @@
+# Copyright 2018 Fabian Wenzelmann <fabianwen@posteo.eu>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from .utils import MatchComparator, JoustException
+
+import re
+
+
+class KubbResult(MatchComparator):
+
+    rx = re.compile(r"^\s*(?P<timeout>timeout:)?\s*(?P<first>\d*):(?P<second>\d*)\s*$")
+
+    def __init__(self, first, second, timeout=False):
+        self.first = first
+        self.second = second
+        self.timeout = timeout
+
+    def __str__(self):
+        return 'KubbResult(timeout=%s, first=%s, second=%s)' % (self.timeout, self.first, self.second)
+
+    @staticmethod
+    def parse(s):
+        match = KubbResult.rx.match(s)
+        if not match:
+            raise JoustException('Invalid syntax for Kubb result in "%s"' % s)
+        timeout = bool(match.group('timeout'))
+        first = match.group('first')
+        second = match.group('second')
+        if (not first) and (not second):
+            raise JoustException('Invalid syntax for Kubb result in "%s", at least one team must have remaining Kubbs' % s)
+        try:
+            if first:
+                first = int(first)
+            else:
+                first = None
+            if second:
+                second = int(second)
+            else:
+                second = None
+        except ValueError:
+            raise JoustException('Invalid syntax for Kubb result in "%s": Invalid int' % s)
+        return KubbResult(first, second, timeout)
+
+
+    def winner(self):
+        pass
