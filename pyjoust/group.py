@@ -148,10 +148,14 @@ def round_robin(group):
     round_robin_circle and berger_table should produce better results.
 
     Args:
-        group: A list of unique team identifiers.
+        group: A list of unique team identifiers, usually a list of ints from 0 to n - 1.
 
     Yields:
         Tuples of team identifiers, describing all matches if each team plays once against each other team.
+
+    Examples:
+        >>> list(round_robin([1, 2, 3]))
+        [(1, 2), (1, 3), (2, 3)]
     """
     return itertools.combinations(group, 2)
 
@@ -182,6 +186,9 @@ def round_robin_circle(teams):
 
         >>> list(itertools.chain.from_iterable(round_robin_circle([1, 2, 3, 4])))
         [(1, 4), (2, 3), (1, 3), (4, 2), (1, 2), (3, 4)]
+
+        >>> list(round_robin_circle([1, 2, 3]))
+        [[(1, 3)], [(1, 2)], [(2, 3)]]
     """
     n = len(teams)
     if n < 2:
@@ -238,6 +245,9 @@ def berger_table(teams):
 
     It yields a different order than round_robin_circle.
 
+    Note that this implementation only works with a list of integers, these must be ranged from 0 to n -1. Thus, if
+    your teams have names create a list first with list(range(n)) and then use the computed indices.
+
     Args:
         teams: A list of ints (team identifiers).
 
@@ -248,7 +258,11 @@ def berger_table(teams):
         >>> list(berger_table([1, 2, 3, 4]))
         [[(1, 4), (2, 3)], [(4, 3), (1, 2)], [(2, 4), (3, 1)]]
 
-        >>>
+        >>> list(berger_table([1, 2, 3]))
+        [[(2, 3)], [(1, 2)], [(3, 1)]]
+
+        >>> list(itertools.chain.from_iterable(berger_table([1, 2, 3])))
+        [(2, 3), (1, 2), (3, 1)]
     """
     n = len(teams)
     if n < 2:
