@@ -17,12 +17,23 @@
 import abc
 import functools
 import re
+import random
 
 
 class JoustException(Exception):
     """The base class for all exceptions thrown by pyjoust.
     """
     pass
+
+
+
+def toss_coin():
+    """Simulates a coin toss with a 50% chance for heads / tails.
+
+    Returns:
+        True if toss result is heads and False if it is tails.
+    """
+    return random.randint(0, 1) == 0
 
 
 @functools.total_ordering

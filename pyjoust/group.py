@@ -316,15 +316,6 @@ def _rotate_berger(l, fixed):
     return result
 
 
-def toss_coin():
-    """Simulates a coin toss with a 50% chance for heads / tails.
-
-    Returns:
-        True if toss result is heads and False if it is tails.
-    """
-    return random.randint(0, 1) == 0
-
-
 class Table(object):
     """A class that connects teams to points and has methods to sort elements.
 
