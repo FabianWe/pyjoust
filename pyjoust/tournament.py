@@ -14,10 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import uuid
 import abc
+import itertools
+import uuid
 
 from .utils import JoustException, toss_coin
+from .group import ThreePointsTable, round_robin_circle
+from .ko import KOTree
 
 class AdditionalMatch(object):
     def __init__(self, team_one, team_two, result=None):
@@ -59,6 +62,25 @@ class CoinTieBreaker(TieBreaker):
 
     def break_tie(self):
         return self.result
+
+
+class GroupPhase(object):
+    def __init__(self, groups, table_class=ThreePointsTable, scheduler=round_robin_circle):
+        self.groups = groups
+        self.tables = []
+        self.rounds = []
+        for group in groups:
+            rounds = list(scheduler(group))
+            self.rounds.append(rounds)
+            match_tuples = itertools.chain.from_iterable(rounds)
+            next_table = table_class(group, match_tuples)
+            self.tables.append(next_table)
+
+
+class KOPhase(object):
+    def __init__(self, teams):
+        self.teams = teams
+        self.tree = KOTree(teams)
 
 
 class TournamentPhase(object):

@@ -14,12 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyjoust.group import TwoPointsTable
-from pyjoust.ko import KOTree
-from pyjoust.kubb import KubbResult
-from pyjoust.utils import GoalScore
-from pyjoust.description import RRAndKO
+from flask import Flask, render_template
+app = Flask(__name__)
 
-if __name__ == '__main__':
-    x = RRAndKO([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-    print(x.group_phase.rounds[0])
+@app.route('/')
+def hello_world():
+    return render_template('bootstrap.html')
+
+@app.route('/hello/')
+@app.route('/hello/<name>')
+def hello(name=None):
+    return render_template('hello.html', name=name)

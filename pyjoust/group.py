@@ -141,23 +141,7 @@ def groups_by_number(num_groups, participants, shuffle=False):
         additional_group=False)
 
 
-def round_robin(group):
-    """Returns an iterator over possible matches (each player plays once against each other player).
-
-    Note that if you want to schedule the matches (having many matches concurrently on different courts)
-    round_robin_circle and berger_table should produce better results.
-
-    Args:
-        group: A list of unique team identifiers, usually a list of ints from 0 to n - 1.
-
-    Yields:
-        Tuples of team identifiers, describing all matches if each team plays once against each other team.
-
-    Examples:
-        >>> list(round_robin([1, 2, 3]))
-        [(1, 2), (1, 3), (2, 3)]
-    """
-    return itertools.combinations(group, 2)
+# TODO document that round_robin is gone
 
 def round_robin_circle(teams):
     """Returns an iterator over possible rounds (each player plays once against each other player).
@@ -343,6 +327,7 @@ class Table(object):
     """
     def __init__(self, group):
         super().__init__()
+        self.group = group
         self.points = dict()
         for team in group:
             self.points[team] = self.empty_value()

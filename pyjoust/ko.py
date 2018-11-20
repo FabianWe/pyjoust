@@ -14,18 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .utils import JoustException
-
-
-def _is_power_of_two(num):
-    return ((num & (num - 1)) == 0) and num > 0
-
-
-def _next_power_of_two(num):
-    val = 1
-    while val < num:
-        val *= 2
-    return val
+from .utils import JoustException, is_power_of_two
 
 
 class KOTreeNode(object):
@@ -44,7 +33,7 @@ class KOTreeNode(object):
 
 class KOTree(object):
     def __init__(self, teams):
-        is_ok = _is_power_of_two(len(teams))
+        is_ok = is_power_of_two(len(teams))
         if not is_ok:
             raise JoustException('KOTree most be initialized with a power of two pairings')
         self.num_teams = len(teams)

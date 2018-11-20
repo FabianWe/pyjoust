@@ -26,7 +26,6 @@ class JoustException(Exception):
     pass
 
 
-
 def toss_coin():
     """Simulates a coin toss with a 50% chance for heads / tails.
 
@@ -34,6 +33,17 @@ def toss_coin():
         True if toss result is heads and False if it is tails.
     """
     return random.randint(0, 1) == 0
+
+
+def is_power_of_two(num):
+    return ((num & (num - 1)) == 0) and num > 0
+
+
+def next_power_of_two(num):
+    val = 1
+    while val < num:
+        val *= 2
+    return val
 
 
 @functools.total_ordering
