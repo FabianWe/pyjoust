@@ -15,8 +15,8 @@
 # limitations under the License.
 
 import itertools
-from operator import itemgetter
 import random
+from operator import itemgetter
 
 from .utils import TwoPoints, JoustException, GoalScore
 
@@ -142,6 +142,49 @@ def groups_by_number(num_groups, participants, shuffle=False):
 
 
 # TODO document that round_robin is gone
+
+def all_matches(teams):
+    """Returns an iterator over all possible matches given the list of teams.
+
+
+    The iteration includes all possible pairings without symmetric pairings.
+    That is if ("Team A", "Team B") is yielded ("Team B", "Team A") is not yielded.
+    For all symmetric pairings use all_matches_bidirect.
+
+    Args:
+        teams: A list of unique team identifiers.
+
+    Yields:
+        Pairs (A, B) where A and B are teams from the given list, if (A, B) is yielded (B, A) is not yielded.
+
+    Examples:
+        >>> list(group.all_matches([1, 2, 3]))
+        [(1, 2), (1, 3), (2, 3)]
+    """
+    yield from itertools.combinations(teams, 2)
+
+
+def all_matches_bidirect(teams):
+    """Returns an iterator over all possible matches given the list of teams.
+
+
+    The iteration includes all possible pairings including symmetric pairings.
+    That is if ("Team A", "Team B") is yielded ("Team B", "Team A") is also yielded.
+    For all matches without symmetric entries use all_matches.
+
+    Args:
+        teams: A list of unique team identifiers.
+
+    Yields:
+        Pairs (A, B) where A and B are teams from the given list, if (A, B) is yielded (B, A) is not yielded.
+
+    Examples:
+        >>> list(group.all_matches_bidirect([1, 2, 3]))
+        [(1, 2), (2, 1), (1, 3), (3, 1), (2, 3), (3, 2)]
+    """
+    for team_a, team_b in all_matches(teams):
+        yield team_a, team_b
+        yield team_b, team_a
 
 def round_robin_circle(teams):
     """Returns an iterator over possible rounds (each player plays once against each other player).

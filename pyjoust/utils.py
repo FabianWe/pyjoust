@@ -181,3 +181,5 @@ class GoalScore(MatchComparator):
             raise JoustException(
                 'Must be of form "a:b" with valid integers, got ' + str(s))
         return GoalScore(first, second)
+
+    # TODO implement sort_ranking / compute_ranks
