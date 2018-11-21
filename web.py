@@ -14,14 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from flask import Flask, render_template, session
+from flask import Flask, render_template
 app = Flask(__name__)
 
 app.secret_key = b'((tp&w+$rvzyx1x9(x^&(_p0slg5se41m7cb2!!y+aeaek*wf9'
 
 @app.route('/')
 def hello_world():
-    print(session)
     return render_template('bootstrap.html')
 
 @app.route('/hello/')
