@@ -100,6 +100,7 @@ class SwissSystem(object):
             competitor = ranking.pop(competitor_id)
             round.append((next, competitor))
             self.match_set.add(next, competitor)
+        self.rounds.append(round)
         return round
 
     def select_by(self, ranking=None):
@@ -129,4 +130,3 @@ class SwissSystem(object):
         assert highest_rank is not None
         self.by_count[selected] += 1
         return selected
-

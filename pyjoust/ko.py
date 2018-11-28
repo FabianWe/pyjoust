@@ -18,14 +18,13 @@ from .utils import JoustException, is_power_of_two
 
 
 class KOTreeNode(object):
-    def __init__(self, team, desc=None, is_bye=False):
+    def __init__(self, team, is_bye=False):
         self.team = team
-        self.desc = desc
         self.is_bye = is_bye
         self.result = None
 
     def __str__(self):
-        return 'Node: Team="%s" desc="%s" is_bye="%s"' % (self.team, self.desc, self.is_bye)
+        return 'Node: Team="%s" is_bye="%s"' % (self.team, self.is_bye)
 
     def __repr__(self):
         return str(self)
