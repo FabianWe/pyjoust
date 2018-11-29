@@ -14,14 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .utils import MatchComparator, JoustException
+from .utils import MatchResult, JoustException
 
 import itertools
 from operator import itemgetter
 import re
 
 
-class KubbResult(MatchComparator):
+class KubbResult(MatchResult):
 
     rx = re.compile(r"^\s*(?P<timeout>timeout:)?\s*(?P<first>\d*):(?P<second>\d*)\s*$")
 

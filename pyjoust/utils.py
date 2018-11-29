@@ -18,6 +18,7 @@ import abc
 import functools
 import re
 import random
+from collections import defaultdict
 
 
 class JoustException(Exception):
@@ -119,7 +120,7 @@ class TwoPoints(object):
             return False
 
 
-class MatchComparator(abc.ABC):
+class MatchResult(abc.ABC):
     """An abstract base class for everything that can be used two compare a match between two teams.
 
     GoalScore implements this interface, it uses "goals" (like in soccer) and computes the winner. Other implementations
@@ -144,16 +145,16 @@ class MatchComparator(abc.ABC):
         pass
 
 
-class GoalScore(MatchComparator):
-
-    rx = re.compile(r"^\s*(?P<first>\d+):(?P<second>\d+)\s*$")
-
+class GoalScore(MatchResult):
     """An implementation of MatchComparator used for games in which teams have a score (for example goals in soccer).
 
-    Attributes:
-        goals_one: An integer, the score (goals) for team one.
-        goals_two: An integer, the score (goals) for team two.
-    """
+        Attributes:
+            goals_one: An integer, the score (goals) for team one.
+            goals_two: An integer, the score (goals) for team two.
+        """
+
+    rx = re.compile(r"^\s*(?P<first>\d+)\s*:\s*(?P<second>\d+)\s*$")
+
     def __init__(self, goals_one, goals_two):
         self.goals_one = goals_one
         self.goals_two = goals_two
@@ -198,4 +199,32 @@ class GoalScore(MatchComparator):
                 'Must be of form "a:b" with valid integers, got ' + str(s))
         return GoalScore(first, second)
 
-    # TODO implement sort_ranking / compute_ranks
+
+class RankCriterion(abc.ABC):
+    # TODO doc me
+
+    @abc.abstractmethod
+    def register_match(self, team_one, team_two, result):
+        #may raise
+        pass
+
+    def keys(self, team):
+        return ()
+
+    @staticmethod
+    def check_type(object, classinfo):
+        if not isinstance(object, classinfo):
+            raise JoustException("Can't register result: Expected instance of %s and got instance of %s" % (classinfo.__name__, type(object).__name__))
+
+
+class GoalsCriterion(RankCriterion):
+    def __init__(self):
+        self.goal_count = defaultdict(int)
+
+    def register_match(self, team_one, team_two, result):
+        self.check_type(result, MatchResult)
+        self.goal_count[team_one] += result.goals_one
+        self.goal_count[team_two] += result.goals_two
+
+    def keys(self, team):
+        return -self.goal_count[team],
