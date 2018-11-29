@@ -265,15 +265,16 @@ def berger_table(teams):
     a match between the two teams, but one might yield ("Team A", "Team B") and the other ("Team B", "Team A").
     This can be important when storing matches in dictionaries.
 
-    Note that in contrast to round_robin it does not yield the matches directly, but yields lists of matches, each
-    list describing a round (can be played concurrently).
-
     This implementation is inspired by https://en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm
 
     It yields a different order than round_robin_circle.
 
-    Note that this implementation only works with a list of integers, these must be ranged from 0 to n -1. Thus, if
-    your teams have names create a list first with list(range(n)) and then use the computed indices.
+    Note that this implementation only works with a list of integers, these must be ranged from 1 to n. Thus, if
+    your teams have names create a list first with list(range(1, n + 1)) and then use the computed indices (don't forget
+    to subtract 1 from each index).
+
+    Teams is an argument to be compliant with other round generators, although a special form is required. teams
+    can also be an int and the team list [1, ..., n] will be used (where n is the integer).
 
     Args:
         teams: A list of ints (team identifiers).
@@ -291,6 +292,8 @@ def berger_table(teams):
         >>> list(itertools.chain.from_iterable(berger_table([1, 2, 3])))
         [(2, 3), (1, 2), (3, 1)]
     """
+    if type(teams) == int:
+        teams = list(range(1, teams + 1))
     n = len(teams)
     if n < 2:
         return

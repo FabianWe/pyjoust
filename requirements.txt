@@ -3,3 +3,4 @@ Django==2.0.3
 psycopg2
 django-bootstrap4
 django-polymorphic==2.0.3
+pytest
