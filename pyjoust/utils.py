@@ -36,10 +36,26 @@ def toss_coin():
 
 
 def is_power_of_two(num):
+    """Checks whether num is a power of two.
+
+    Args:
+        num: A positive integer.
+
+    Returns:
+        True if num is a power of two.
+    """
     return ((num & (num - 1)) == 0) and num > 0
 
 
 def next_power_of_two(num):
+    """Returns the next power of two >= num.
+
+    Args:
+        num: A positive integer.
+
+    Returns:
+        The next power of two >= num.
+    """
     val = 1
     while val < num:
         val *= 2
